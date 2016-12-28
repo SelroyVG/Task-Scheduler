@@ -1,0 +1,28 @@
+*** Command: "ls" Executed at: 1482920000 with results below. ***
+crekub_lib.o
+init.sql
+makefile
+mycron
+scheduler.cpp
+sql.h
+sql.o
+taskscheduler
+*** End of the output. ***
+
+*** Command: "ls" Executed at: 1482920040 with results below. ***
+crekub_lib.o
+init.sql
+makefile
+mycron
+scheduler.cpp
+sql.h
+sql.o
+taskscheduler
+*** End of the output. ***
+
+*** Command: "ls -d */" Executed at: 1482920240 with results below. ***
+*** End of the output. ***
+
+*** Command: "mkdir /home/egor/new_dir" Executed at: 1482920460 with results below. ***
+*** End of the output. ***
+
