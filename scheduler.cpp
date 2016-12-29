@@ -25,21 +25,21 @@ struct config {
   string mysql_unix_socket;
 } config = {"127.0.0.1","scc","ZQLf-0.4","tasks_scheduler",0,""};
 
-int Daemon(int launchTime, string daemonCommand, bool restoreTasks){
+int Daemon(int launchTime, string daemonCommand, int rank, bool restoreTasks){
 	if (!restoreTasks){
-		wSQL("INSERT INTO daemons_log (command,status,launch_time) VALUES(%q,%q,FROM_UNIXTIME(%u))",daemonCommand.c_str(),"inserted",launchTime);
+		wSQL("INSERT INTO daemons_log (process_id,command,status,launch_time) VALUES(%u,%q,%q,FROM_UNIXTIME(%u))",rank,daemonCommand.c_str(),"inserted",launchTime);
 	}
 	time_t now;
 	time(&now);
 	int timeDelta = launchTime - now;
 	if(timeDelta < 0){
-		string query = "UPDATE daemons_log SET status=\'denied\' WHERE command=\'" + daemonCommand + "\' AND launch_time=FROM_UNIXTIME(" + to_string(launchTime) + ") AND status=\'inserted\'";
+		string query = "UPDATE daemons_log SET status=\'denied\' WHERE process_id=" + to_string(rank) + " AND status=\'inserted\'";
 		wSQL(query.c_str());
 	}
 	else if (timeDelta > 0){ 
 		sleep(timeDelta - 1);
 		
-		string query = "UPDATE daemons_log SET status=\'executed\' WHERE command=\'" + daemonCommand + "\' AND launch_time=FROM_UNIXTIME(" + to_string(launchTime) + ") AND status=\'inserted\'";
+		string query = "UPDATE daemons_log SET status=\'executed\' WHERE process_id=" + to_string(rank) + " AND status=\'inserted\'";
 		wSQL(query.c_str());
 		ofstream fout_command(".logs/output", std::ios_base::app);
 		fout_command << "*** Command: \"" << daemonCommand << "\" Executed at: " << launchTime << " with results below. ***" << endl;
@@ -154,6 +154,7 @@ int main(int argc, char ** argv) {
 	
 	pid_t pid = fork();
 	
+		
 	if (pid == -1)
         return -1;
     else if (pid)
@@ -162,9 +163,11 @@ int main(int argc, char ** argv) {
 	OpenSQL(config.mysql_host.c_str(),config.mysql_user.c_str(),config.mysql_passwd.c_str(), config.mysql_db.c_str(), config.mysql_port,config.mysql_unix_socket.c_str());
 	
 	umask(0);
-    setsid();
+    int rank = setsid();
+	
+	
 	if (!restoreTasks){
-		Daemon (launchTime, daemonCommand, restoreTasks);
+		Daemon (launchTime, daemonCommand, rank, restoreTasks);
 	}
 	else{
 		const char * command;
