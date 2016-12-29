@@ -171,10 +171,12 @@ int main(int argc, char ** argv) {
 	}
 	else{
 		const char * command;
-		 long long unsigned launch_time;
-		for (void * r = rfSQL("SELECT command,unix_timestamp(launch_time) FROM daemons_log WHERE status='inserted'"); rnSQL(r,&command, &launch_time);){
+		long long unsigned launch_time;
+		for (void * r = rfSQL("SELECT process_id,command,unix_timestamp(launch_time) FROM daemons_log WHERE status='inserted'"); rnSQL(r, &rank, &command, &launch_time);){
 			string query = "./taskscheduler -t " + to_string(launch_time) + " -c \"" + command + "\"";
 			system(query.c_str());
+			query = "UPDATE daemons_log SET status=\'restarted\' WHERE process_id=" + to_string(rank) + " AND status=\'inserted\'";
+			wSQL(query.c_str());
 		}
 	}
 	return 0;
