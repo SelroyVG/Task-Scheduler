@@ -8,4 +8,4 @@ CREATE TABLE `daemons_log` (
   `status` varchar(32) NOT NULL,
   `launch_time` datetime NOT NULL,
   PRIMARY KEY(`id`)
-) CHARSET='utf8';
+) CHARSET='utf8'; 

@@ -25,7 +25,7 @@ struct config {
   string mysql_unix_socket;
 } config = {"127.0.0.1","scc","ZQLf-0.4","tasks_scheduler",0,""};
 
-int Daemon(int launchTime, string daemonCommand, int rank, bool restoreTasks){
+int Daemon(int launchTime, string daemonCommand, int rank, bool restoreTasks, string output_file){
 	if (!restoreTasks){
 		wSQL("INSERT INTO daemons_log (process_id,command,status,launch_time) VALUES(%u,%q,%q,FROM_UNIXTIME(%u))",rank,daemonCommand.c_str(),"inserted",launchTime);
 	}
@@ -41,12 +41,14 @@ int Daemon(int launchTime, string daemonCommand, int rank, bool restoreTasks){
 		
 		string query = "UPDATE daemons_log SET status=\'executed\' WHERE process_id=" + to_string(rank) + " AND status=\'inserted\'";
 		wSQL(query.c_str());
-		ofstream fout_command(".logs/output", std::ios_base::app);
-		fout_command << "*** Command: \"" << daemonCommand << "\" Executed at: " << launchTime << " with results below. ***" << endl;
+		ofstream fout_command(output_file, std::ios_base::app);
+		if (output_file == "./std_output")
+			fout_command << "*** Command: \"" << daemonCommand << "\" Executed at: " << launchTime << " with results below. ***" << endl;
 		
-		daemonCommand += " >> .logs/output";
+		daemonCommand = daemonCommand + " >> " + output_file;
 		system(daemonCommand.c_str());
-		fout_command << "*** End of the output. ***" << endl << endl;
+		if (output_file == "./std_output")
+			fout_command << "*** End of the output. ***" << endl << endl;
 		fout_command.close();
 		
 	}
@@ -113,6 +115,7 @@ int main(int argc, char ** argv) {
 	string query;
 	string daemonCommand;
 	string time;
+	string output_file = "./std_output";
 	bool restoreTasks = false;
 	
 	int launchTime = 0;
@@ -124,7 +127,10 @@ int main(int argc, char ** argv) {
 			restoreTasks = true;
 			continue;
 		}
-		
+		if ((currentAgrument == "-o") || (currentAgrument == "--output")){
+			output_file = argv[argCounter + 1];
+			continue;
+		}		
 		
 		if ((currentAgrument == "-c") || (currentAgrument == "--command")){
 			daemonCommand = argv[argCounter + 1];
@@ -167,7 +173,7 @@ int main(int argc, char ** argv) {
 	
 	
 	if (!restoreTasks){
-		Daemon (launchTime, daemonCommand, rank, restoreTasks);
+		Daemon (launchTime, daemonCommand, rank, restoreTasks, output_file);
 	}
 	else{
 		const char * command;
