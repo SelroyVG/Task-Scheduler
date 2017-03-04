@@ -23,7 +23,7 @@ struct config {
   string mysql_db;
   unsigned int mysql_port;
   string mysql_unix_socket;
-} config = {"127.0.0.1","scc","ZQLf-0.4","tasks_scheduler",0,""};
+} config = {"127.0.0.1","db_login","db_password","tasks_scheduler",0,""};
 
 int Daemon(int launchTime, string daemonCommand, int rank, bool restoreTasks, string output_file){
 	if (!restoreTasks){
